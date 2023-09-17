@@ -10,39 +10,41 @@ import {GoComment} from "react-icons/go"
 import {PiShareFat} from "react-icons/pi"
 import {useAuth} from "@/context/authContext"
 import {auth, db} from "@/firebase/config"
-import Profile from "@/assets/Images/nftwallpaper.jpg"
-import NftTwo from "@/assets/Images/nfttwo.jpg"
+import { useDispatch, useSelector } from 'react-redux'
+import CommentSection from "./CommentSection"
+
 import { useCollection } from 'react-firebase-hooks/firestore'
+import { PostActions } from '@/redux/features/post/postSlice'
+
 export default function Post() {
   const [post]= useCollection(db.collection('posts')?.orderBy('timeStamp','desc'))
+  const dispatch = useDispatch()
+  const postId = useSelector((state)=> state.postId)
+  const [isCommentOpen, setIsCommentOpen] = useState(false);
 const {currentUser} = useAuth()
-const [like, setLike] = useState(false)
-function addLike(thisDoc) {
-  setLike((prevLike) => !prevLike);
 
-  // Update Firestore document with the like
-  const postRef = db.collection('posts').doc(thisDoc);
-  postRef.get().then((doc) => {
-    if (doc.exists) {
-      let updatedLikes = doc.data()?.likes || 0;
-
-      // Increment or decrement likes based on the previous like state
-      if (like) {
-        updatedLikes--;
-      } else {
-        updatedLikes++;
-      }
-
-      // Update the "likes" field in Firestore
-      postRef.update({ likes: updatedLikes });
-    }
-  });
+function addLike(id, currentLikeStatus, currentLike) {
+  db.collection('posts')?.doc(id)?.update({likeStatus : !currentLikeStatus})
+  const newLikesCount = currentLikeStatus ? currentLike - 1 : currentLike + 1
+  db.collection('posts')?.doc(id)?.update({ likes: newLikesCount })
 }
+
+function deletePost(id) {
+  db.collection('posts')?.doc(id)?.delete()
+}
+
+function selectHandler(id) {
+dispatch(PostActions.selectId({id:id}))
+console.log(postId)
+}
+const showComment = () => {
+  setIsCommentOpen(true);
+};
   return (
     <>
     {post?.docs?.map((postItem) => {
       return (
-      <div key = {Math.random()} className="flex flex-col bg-white w-[100%] max-w-[600px] mx-auto rounded-xl my-5 py-2">
+      <div key = {postItem.id} className="flex flex-col bg-white w-[100%] max-w-[600px] mx-auto rounded-xl my-5 py-2">
 
 <div className="flex justify-between px-3  items-center py-2">
 <div className="flex gap-x-2 items-center">
@@ -58,7 +60,7 @@ function addLike(thisDoc) {
 <div className="flex sm:gap-x-3 gap-x-1">
     <BiDotsHorizontalRounded className="text-[45px] cursor-pointer hover:bg-[rgb(242,242,242)] rounded-full p-3"/>
 
-    <AiOutlineClose className="text-[45px] cursor-pointer hover:bg-[rgb(242,242,242)] rounded-full p-3"/>
+    <AiOutlineClose className="text-[45px] cursor-pointer hover:bg-[rgb(242,242,242)] rounded-full p-3" onClick ={()=> deletePost(postItem.id)}/>
 </div>
 </div>
 
@@ -105,16 +107,17 @@ height={600}
 
 <div className="flex mt-2 items-center flex-wrap">
 <div
-  className={`flex-1 flex justify-center items-center gap-x-2 hover:bg-[rgb(242,242,242)] rounded-lg cursor-pointer p-2 ${
-    like ? 'text-[blue]' : 'white' 
-  }`}
-  onClick={() => addLike(postItem.id)}
+  className={`flex-1 flex justify-center items-center gap-x-2 hover:bg-[rgb(242,242,242)] rounded-lg cursor-pointer p-2`}
+  onClick={() => addLike(postItem.id, postItem?.data().likeStatus, postItem?.data().likes)}
 >
-  <AiOutlineLike className={`text-[22px] ${like ? 'text-[blue]' : ''}`} />
+  <AiOutlineLike className={`text-[22px] ${postItem.data().likeStatus ? "text-[blue]" : ""}`} />
   <div className="text-[rgb(124,126,129)] text-[0.8rem] font-semibold">Like</div>
 </div>
 
-      <div className="flex-1 flex justify-center items-center gap-x-2 flex-wrap hover:bg-[rgb(242,242,242)] rounded-lg cursor-pointer p-2">
+      <div className="flex-1 flex justify-center items-center gap-x-2 flex-wrap hover:bg-[rgb(242,242,242)] rounded-lg cursor-pointer p-2" onClick={()=> {
+        selectHandler(postItem?.id)
+        showComment()
+        }}>
         <GoComment className="text-[22px] "/>
         <div className="text-[rgb(124,126,129)] text-[0.8rem] font-semibold">
             Comment
@@ -128,7 +131,7 @@ height={600}
 
 
       </div>
-    </div>
+    </div> 
     
 
 
@@ -140,6 +143,7 @@ height={600}
     </div>
     
   )})}
+  <CommentSection isCommentOpen = {isCommentOpen} setIsCommentOpen = {setIsCommentOpen}/>
   </>
 )
 }

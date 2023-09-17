@@ -4,6 +4,8 @@ import { Inter } from 'next/font/google'
 import {ImageProvider} from "@/context/imageContext"
 import { AuthProvider } from '@/context/authContext'
 import {PostProvider} from "@/context/postContext"
+
+import {ReduxProvider} from "@/reduxProvider"
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
@@ -15,6 +17,7 @@ export default function RootLayout({children}){
   return (
     <html lang="en">
       <body className={inter.className}>
+        <ReduxProvider>
         <AuthProvider>
           <PostProvider>
         <ImageProvider>
@@ -22,6 +25,7 @@ export default function RootLayout({children}){
         </ImageProvider>
         </PostProvider>
         </AuthProvider>
+        </ReduxProvider>
         </body>
     </html>
   )

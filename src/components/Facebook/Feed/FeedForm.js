@@ -39,18 +39,11 @@ export default function FeedForm() {
     
 
     <div className="flex mt-2 items-center flex-wrap">
-      <div className="flex-1 flex justify-center items-center gap-x-2 hover:bg-[rgb(242,242,242)] rounded-lg cursor-pointer p-2">
-      <BsCameraVideoFill className="text-[22px] text-[rgb(228,38,69)]"/>
-<div className="text-[rgb(124,126,129)] text-[1rem] font-semibold">
-    Live video
-</div>
-
-      </div>
 
       <div onClick = {showModal} className="flex-1 flex justify-center items-center gap-x-2 flex-wrap hover:bg-[rgb(242,242,242)] rounded-lg cursor-pointer p-2">
         <GrGallery className="text-[22px] text-[rgb(69,189,98)]"/>
         <div className="text-[rgb(124,126,129)] text-[1rem] font-semibold">
-            Photo/video
+            Photo/video(click here)
         </div>
      </div>
 

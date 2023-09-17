@@ -21,6 +21,7 @@ export async function postHandler(postImage, postInput, number, currentUser) {
       inputOfPost: postInput,
       userOfPost: currentUser?.displayName,
       likes: number,
+      likeStatus: false,
       photoOfUser: currentUser?.photoURL,
       uid: currentUser?.uid,
       email: currentUser?.email,

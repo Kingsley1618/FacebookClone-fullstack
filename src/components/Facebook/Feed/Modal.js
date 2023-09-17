@@ -1,5 +1,5 @@
 'use client'
-import React,{useState} from "react"
+import React,{useState, useEffect} from "react"
 import {AiOutlineClose} from "react-icons/ai"
 import {auth, db} from "@/firebase/config"
 import {AiOutlineUser} from "react-icons/ai"
@@ -13,7 +13,8 @@ const ModalPage = ({showModal, isModalOpen, handleCancel, handleOk}) => {
     const [user] = useDocument(db.collection('users')?.doc(auth?.currentUser?.uid));
     const {currentUser} = useAuth()
   const [postImage, setPostImage] = useState(null)
-    const [postInput, setPostInput] = useState(null)
+  const [btnAble, setBtnAble] = useState(true)
+    const [postInput, setPostInput] = useState("")
     const [number, setNumber] = useState(0)
     function changeImage(event) {
         const selectedFile = event.target.files[0]
@@ -32,9 +33,17 @@ return false;
     function postFunction() {
 postHandler(postImage, postInput,number, currentUser)
 handleCancel()
-setPostInput(null)
+setPostInput("")
 setPostImage(null)
     }
+
+    useEffect(()=> {
+if(postInput.trim().length < 1) {
+  setBtnAble(true)
+} else {
+  setBtnAble(false)
+}
+    },[postInput])
   return (
   
       
@@ -64,7 +73,7 @@ setPostImage(null)
 
 
         <div className="w-[100%] my-3">
-        <input type="text" onChange = {changeInput} value = {postInput}  className="w-[100%] rounded-2xl w-[100%] bg-[rgb(240,242,245)] p-2 outline-0" placeholder={`What's on your mind,${user?.data()?.displayName}`} />
+        <input type="text" onChange = {changeInput} value = {postInput}  className="w-[100%] rounded-2xl w-[100%] bg-[rgb(240,242,245)] p-2 outline-0" placeholder={`What's on your mind,${currentUser?.displayName}`} />
         </div>
 
 
@@ -87,7 +96,7 @@ setPostImage(null)
     
     </label>
 <div className="px-2 mt-3">
-    <button type="button" onClick = {postFunction} className="bg-[rgb(27,116,228)] py-2 w-[100%] rounded-md font-bold text-white text-center">Post</button>
+    <button type="button" disabled= {btnAble} onClick = {postFunction} className="bg-[rgb(27,116,228)] py-2 w-[100%] rounded-md font-bold text-white text-center">Post</button>
     </div>
       </Modal>
  
