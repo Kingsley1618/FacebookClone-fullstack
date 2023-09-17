@@ -32,12 +32,30 @@ export default function CommentSection({isCommentOpen, setIsCommentOpen}) {
   const handleCancel = () => {
     setIsCommentOpen(false);
   };
-  function addLike(id, currentLikeStatus, currentLike) {
-    db.collection('posts')?.doc(id)?.update({likeStatus : !currentLikeStatus})
-    const newLikesCount = currentLikeStatus ? currentLike - 1 : currentLike + 1
-    db.collection('posts')?.doc(id)?.update({ likes: newLikesCount })
-  }
+  const [likedPosts, setLikedPosts] = useState(new Set()); // Track liked posts
 
+  async function addLike(id, currentLikeStatus, currentLike) {
+    const postRef = db.collection('posts').doc(id);
+
+   
+    if (currentLikeStatus) {
+      
+      await postRef.update({
+        likedBy: firebase.firestore.FieldValue.arrayRemove(currentUser.uid),
+        likes: currentLike - 1,
+      });
+     
+      likedPosts.delete(id);
+    } else {
+      
+      await postRef.update({
+        likedBy: firebase.firestore.FieldValue.arrayUnion(currentUser.uid),
+        likes: currentLike + 1,
+      });
+      
+      likedPosts.add(id);
+    }
+  }
   function addComment() {
     db.collection("posts").doc(postId)?.collection("comment").add({text, photoURL : currentUser?.photoURL, user: currentUser?.displayName,timeStamp: firebase.firestore.FieldValue.serverTimestamp()})
     setText("")
@@ -57,7 +75,7 @@ if(text.trim().length < 1) {
       <div className="w-[100%] max-h-[60vh] h-[100%] flex flex-col">
        <div className="my-2 flex-1" style={{overflowY: "scroll"}}>
 <div className="flex gap-x-2">
-    <Image src = {currentUser.photoURL} width = {40} height = {40} className="rounded-full w-[40px] h-[40px]" alt="commentprof"/>
+    <Image src = {comment?.data()?.photoOfUser} width = {40} height = {40} className="rounded-full w-[40px] h-[40px]" alt="commentprof"/>
 
 
     <div className="flex flex-col">
@@ -68,7 +86,7 @@ if(text.trim().length < 1) {
 
 <div className="px-2 mx-auto block">{comment?.data()?.inputOfPost}</div>
       <div className="w-[100%]">
-<Image src={comment?.data().imageOfPost} width={100} height={100} className="w-[100%] h-[200px] rounded-lg"/>
+<Image src={comment?.data().imageOfPost} width={100} height={100} alt="postimage" className="w-[100%] h-[200px] rounded-lg"/>
       </div>
 
 
@@ -93,10 +111,8 @@ if(text.trim().length < 1) {
 
 <div className="flex mt-2 items-center flex-wrap">
 <div
-  className={`flex-1 flex justify-center items-center gap-x-2 hover:bg-[rgb(242,242,242)] rounded-lg cursor-pointer p-2`}
-  onClick={() => addLike(comment?.id, comment?.data()?.likeStatus, comment?.data().likes)}
->
-  <AiOutlineLike className={`text-[22px] ${comment?.data()?.likeStatus ? "text-[blue]" : ""}`} />
+  className={`flex-1 flex justify-center items-center gap-x-2 hover:bg-[rgb(242,242,242)] rounded-lg cursor-pointer p-2`}>
+  <AiOutlineLike className={`text-[22px] ]`} />
   <div className="text-[rgb(124,126,129)] text-[0.8rem] font-semibold">Like</div>
 </div>
 
